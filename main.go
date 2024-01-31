@@ -9,19 +9,31 @@ import (
 func main() {
 	fmt.Println("Hello from web-server")
 	mux := http.NewServeMux()
-	//mux.Handle("/", http.FileServer(http.Dir("./web-files")))
 	serveImageFromAssets(mux)
+	mux.Handle("/healthz", customHandler(mux))
 	corsMux := middlewareCors(mux)
 	srvErr := http.ListenAndServe(":8080", corsMux)
-
 	if srvErr != nil {
 		log.Fatal(srvErr)
 	}
 }
 
 func serveImageFromAssets(mux *http.ServeMux) {
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("."))))
 	//mux.Handle("/assets/", http.FileServer(http.Dir("./logo.png")))
+}
+
+func customHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		response := "OK"
+		if r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(response))
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 /*
