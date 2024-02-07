@@ -5,3 +5,9 @@ GET http://localhost:8080/app
 ###
 
 GET http://localhost:8080/app/assets
+###
+
+GET http://localhost:8080/metrics
+####
+
+GET http://localhost:8080/reset
