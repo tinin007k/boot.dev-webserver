@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type apiConfig struct {
@@ -12,24 +14,27 @@ type apiConfig struct {
 
 func main() {
 	fmt.Println("Hello from web-server")
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
+	//mux := http.NewServeMux()
 	apiCfg := apiConfig{fileserverHits: 0}
-	mux.Handle(
-		"/app/",
-		apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))),
+	fsHandler := apiCfg.middlewareMetricsInc(
+		http.StripPrefix("/app", http.FileServer(http.Dir("."))),
 	)
-	mux.Handle("/healthz", customHandler(mux))
-	mux.Handle("/metrics", apiCfg.metricsHandler(mux))
-	mux.Handle("/reset", apiCfg.metricsReset(mux))
-	corsMux := middlewareLog(middlewareCors(mux))
+	r.Handle("/app", fsHandler)
+	r.Handle("/app/*", fsHandler)
+
+	r.Get("/healthz", customHandler(r))
+	r.Get("/metrics", apiCfg.metricsHandler(r))
+	r.Handle("/reset", apiCfg.metricsReset(r))
+	corsMux := middlewareLog(middlewareCors(r))
 	srvErr := http.ListenAndServe(":8080", corsMux)
 	if srvErr != nil {
 		log.Fatal(srvErr)
 	}
 }
 
-func customHandler(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func customHandler(handler http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		response := "OK"
 		if r.Method == "GET" {
@@ -38,7 +43,7 @@ func customHandler(handler http.Handler) http.Handler {
 			return
 		}
 		handler.ServeHTTP(w, r)
-	})
+	}
 }
 
 /*

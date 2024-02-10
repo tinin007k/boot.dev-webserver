@@ -24,8 +24,8 @@ func addHeaders(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func (cfg *apiConfig) metricsHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) metricsHandler(next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		res := "Hits: " + strconv.Itoa(cfg.fileserverHits)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		if r.Method == "GET" {
@@ -34,7 +34,7 @@ func (cfg *apiConfig) metricsHandler(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-	})
+	}
 }
 
 func (cfg *apiConfig) metricsReset(next http.Handler) http.Handler {
