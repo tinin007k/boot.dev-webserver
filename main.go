@@ -16,12 +16,12 @@ func main() {
 	apiCfg := apiConfig{fileserverHits: 0}
 	mux.Handle(
 		"/app/",
-		apiCfg.middlewareMetricsInc(http.StripPrefix("/app/", http.FileServer(http.Dir(".")))),
+		apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))),
 	)
 	mux.Handle("/healthz", customHandler(mux))
 	mux.Handle("/metrics", apiCfg.metricsHandler(mux))
 	mux.Handle("/reset", apiCfg.metricsReset(mux))
-	corsMux := middlewareCors(mux)
+	corsMux := middlewareLog(middlewareCors(mux))
 	srvErr := http.ListenAndServe(":8080", corsMux)
 	if srvErr != nil {
 		log.Fatal(srvErr)
