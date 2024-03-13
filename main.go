@@ -12,6 +12,14 @@ type apiConfig struct {
 	fileserverHits int
 }
 
+type chirpRequest struct {
+	Body string `json:"body"`
+}
+
+type error struct {
+	ErrorMesg string `json:"error"`
+}
+
 func main() {
 	fmt.Println("Hello from web-server")
 	r := chi.NewRouter()
@@ -23,9 +31,19 @@ func main() {
 	r.Handle("/app", fsHandler)
 	r.Handle("/app/*", fsHandler)
 
-	r.Get("/healthz", customHandler(r))
-	r.Get("/metrics", apiCfg.metricsHandler(r))
-	r.Handle("/reset", apiCfg.metricsReset(r))
+	apiRoute := chi.NewRouter()
+
+	apiRoute.Get("/healthz", customHandler(apiRoute))
+	apiRoute.Get("/metrics", apiCfg.metricsHandler(apiRoute))
+	apiRoute.Get("/reset", apiCfg.metricsReset(apiRoute))
+	apiRoute.Post("/validate_chirp", apiCfg.validateChirp(apiRoute))
+	r.Mount("/api", apiRoute)
+
+	adminRoute := chi.NewRouter()
+
+	adminRoute.Get("/metrics", apiCfg.adminMetricsHtmlHandler(adminRoute))
+	r.Mount("/admin", adminRoute)
+
 	corsMux := middlewareLog(middlewareCors(r))
 	srvErr := http.ListenAndServe(":8080", corsMux)
 	if srvErr != nil {
@@ -53,7 +71,7 @@ First assignment - Using and exploring the CORS
 func middlewareCors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*") //https://www.boot.dev
-		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Cache-Control", "no-cache")
 		if r.Method == "OPTIONS" {
