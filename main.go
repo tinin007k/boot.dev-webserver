@@ -23,7 +23,6 @@ type error struct {
 func main() {
 	fmt.Println("Hello from web-server")
 	r := chi.NewRouter()
-	//mux := http.NewServeMux()
 	apiCfg := apiConfig{fileserverHits: 0}
 	fsHandler := apiCfg.middlewareMetricsInc(
 		http.StripPrefix("/app", http.FileServer(http.Dir("."))),
@@ -32,7 +31,6 @@ func main() {
 	r.Handle("/app/*", fsHandler)
 
 	apiRoute := chi.NewRouter()
-
 	apiRoute.Get("/healthz", customHandler(apiRoute))
 	apiRoute.Get("/metrics", apiCfg.metricsHandler(apiRoute))
 	apiRoute.Get("/reset", apiCfg.metricsReset(apiRoute))
@@ -70,7 +68,9 @@ First assignment - Using and exploring the CORS
 */
 func middlewareCors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*") //https://www.boot.dev
+		w.Header().
+			Set("Access-Control-Allow-Origin", "*")
+			// https://www.boot.dev
 		w.Header().Set("Access-Control-Allow-Methods", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Cache-Control", "no-cache")
