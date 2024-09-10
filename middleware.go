@@ -14,9 +14,8 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 
-	//log.Println("file hit value is", cfg.fileserverHits)
-	//fs := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
-
+	// log.Println("file hit value is", cfg.fileserverHits)
+	// fs := http.StripPrefix("/app/", http.FileServer(http.Dir(".")))
 }
 
 func addHeaders(next http.Handler) http.HandlerFunc {
@@ -39,7 +38,9 @@ func (cfg *apiConfig) metricsHandler(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func (cfg *apiConfig) adminMetricsHtmlHandler(next http.Handler) http.HandlerFunc {
+func (cfg *apiConfig) adminMetricsHtmlHandler(
+	next http.Handler,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		htmpTemplate := "<html><body><h1>Welcome, Chirpy Admin</h1><p>Chirpy has been visited %d times!</p></body></html>"
 		res := fmt.Sprintf(htmpTemplate, cfg.fileserverHits)
@@ -49,7 +50,7 @@ func (cfg *apiConfig) adminMetricsHtmlHandler(next http.Handler) http.HandlerFun
 			w.Write([]byte(res))
 			return
 		}
-		next.ServeHTTP(w, r)
+		// next.ServeHTTP(w, r)
 	}
 }
 
@@ -81,16 +82,21 @@ func (cfg *apiConfig) validateChirp(next http.Handler) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(dat))
 		return
-		//next.ServeHTTP(w, r)
+		// next.ServeHTTP(w, r)
 	}
 }
 
-func respondWithError(w http.ResponseWriter, r *http.Request, code int, msg string) {
+func respondWithError(
+	w http.ResponseWriter,
+	r *http.Request,
+	code int,
+	msg string,
+) {
 	errMesg := error{ErrorMesg: msg}
 	dat, _ := json.Marshal(errMesg)
 	w.WriteHeader(code)
 	w.Write(dat)
-	//return
+	// return
 }
 
 func (cfg *apiConfig) metricsReset(next http.Handler) http.HandlerFunc {

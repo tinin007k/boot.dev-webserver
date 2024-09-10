@@ -42,6 +42,10 @@ func main() {
 	adminRoute.Get("/metrics", apiCfg.adminMetricsHtmlHandler(adminRoute))
 	r.Mount("/admin", adminRoute)
 
+	// test appHandler
+	appHandlerRoute := chi.NewRouter()
+	appHandlerRoute.Handle("/appHandler", appHandler(testAppHandler))
+
 	corsMux := middlewareLog(middlewareCors(r))
 	srvErr := http.ListenAndServe(":8080", corsMux)
 	if srvErr != nil {
